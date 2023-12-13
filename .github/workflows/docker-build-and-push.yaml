@@ -1,0 +1,67 @@
+# This is the name of the workflow
+name: Docker Build & Push
+
+# When it runs
+on:
+  workflow_dispatch:
+    # I can refer to these in the steps below
+    # See https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/
+    inputs:
+      moduleversion:
+        description: 'Version of the module'
+        required: true
+        default: ''
+
+defaults:
+  run:
+    shell: bash
+
+# And what jobs it has
+jobs:
+  # Just one job here ... imaginatively called "buildbox"
+  buildbox:
+   # this job runs on Ubuntu
+    runs-on: ubuntu-latest
+
+  build-linux-box:
+    runs-on: ubuntu-latest
+    # the steps of my job
+    steps:
+      # Checkout the code from GitHib
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Setup QEMU for building other platforms
+      # Not used now as PowerShell isn't present on all platforms I think
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+      
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        uses: docker/build-push-action@v3
+        with:
+          file: Dockerfile
+          push: false
+          tags: |
+            rakheshster/docker-powershell-msgraph:latest
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile
+          # thanks for the syntax https://github.com/docker/build-push-action/issues/557
+          build-args: |
+            GRAPH_VERSION=${{ github.event.inputs.moduleversion }}
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/rakheshster/docker-powershell-msgraph:latest
+            ghcr.io/rakheshster/docker-powershell-msgraph:${{ github.event.inputs.moduleversion }}
