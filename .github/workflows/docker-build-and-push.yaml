@@ -42,14 +42,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
-        uses: docker/build-push-action@v3
-        with:
-          file: Dockerfile
-          push: false
-          tags: |
-            rakheshster/docker-powershell-msgraph:latest
-
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
