@@ -18,11 +18,7 @@ defaults:
 
 # And what jobs it has
 jobs:
-  # Just one job here ... imaginatively called "buildbox"
-  buildbox:
-   # this job runs on Ubuntu
-    runs-on: ubuntu-latest
-
+  # Just one job here ...
   build-linux-box:
     runs-on: ubuntu-latest
     # the steps of my job
