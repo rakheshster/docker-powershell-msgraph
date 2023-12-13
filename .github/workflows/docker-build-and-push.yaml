@@ -54,5 +54,4 @@ jobs:
             GRAPH_VERSION=${{ github.event.inputs.moduleversion }}
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/rakheshster/docker-powershell-msgraph:latest
             ghcr.io/rakheshster/docker-powershell-msgraph:${{ github.event.inputs.moduleversion }}
