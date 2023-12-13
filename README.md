@@ -67,10 +67,10 @@ function docker-graph() {
         -v /path/to/MoreScripts:/root/MoreScripts:ro \
         -v /HOME/.config/powershell:/root/.config/powershell:ro \
     ghcr.io/rakheshster/docker-powershell-msgraph:$1
-}```
+}
+```
 
 So I can do `docker-graph 2.10.0` and it will download and put me in that. If the image doesn't exist in GHCR then it errors:
-
 ```
 $ docker-graph 2.9.0
 Unable to find image 'ghcr.io/rakheshster/docker-powershell-msgraph:2.9.0' locally
