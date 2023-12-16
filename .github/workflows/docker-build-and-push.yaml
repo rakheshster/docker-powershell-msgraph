@@ -50,6 +50,7 @@ jobs:
         with:
           file: Dockerfile
           platforms: "linux/amd64,linux/arm64"
+          # Only amd64 is supported for now in the Ubuntu image https://learn.microsoft.com/en-gb/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.4#ubuntu
           # thanks for the syntax https://github.com/docker/build-push-action/issues/557
           build-args: |
             GRAPH_VERSION=${{ github.event.inputs.moduleversion }}

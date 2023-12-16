@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/powershell
+FROM FROM --platform=$BUILDPLATFORM mcr.microsoft.com/powershell:mariner-2.0
 LABEL org.opencontainers.image.description="PowerShell + MS Graph container"
 LABEL org.opencontainers.image.source=https://github.com/rakheshster/docker-powershell-msgraph
 ARG GRAPH_VERSION
