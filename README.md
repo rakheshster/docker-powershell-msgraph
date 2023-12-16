@@ -77,3 +77,6 @@ Unable to find image 'ghcr.io/rakheshster/powershell-msgraph:2.9.0' locally
 docker: Error response from daemon: manifest unknown.
 See 'docker run --help'.
 ```
+
+### DockerHub version
+The image is also available on [DockerHub](https://hub.docker.com/repository/docker/rakheshster/powershell-msgraph/general). Instead of `ghcr.io/rakheshster/powershell-msgraph:xxx` above use `rakheshster/powershell-msgraph:xxx`.
