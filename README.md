@@ -43,7 +43,7 @@ docker run -it --network host \
     -v /path/to/Scripts:/root/Scripts:ro \
     -v /path/to/MoreScripts:/root/MoreScripts:ro \
     -v /HOME/.config/powershell:/root/.config/powershell:ro \
-    ghcr.io/rakheshster/docker-powershell-msgraph:1.21.0
+    ghcr.io/rakheshster/powershell-msgraph:1.21.0
 ```
 
 In this case I am pulling version 1.21.0. The version number is that of the Graph module.
@@ -66,14 +66,14 @@ function docker-graph() {
         -v /path/to/Scripts:/root/Scripts:ro \
         -v /path/to/MoreScripts:/root/MoreScripts:ro \
         -v /HOME/.config/powershell:/root/.config/powershell:ro \
-    ghcr.io/rakheshster/docker-powershell-msgraph:$1
+    ghcr.io/rakheshster/powershell-msgraph:$1
 }
 ```
 
 So I can do `docker-graph 2.10.0` and it will download and put me in that. If the image doesn't exist in GHCR then it errors:
 ```
 $ docker-graph 2.9.0
-Unable to find image 'ghcr.io/rakheshster/docker-powershell-msgraph:2.9.0' locally
+Unable to find image 'ghcr.io/rakheshster/powershell-msgraph:2.9.0' locally
 docker: Error response from daemon: manifest unknown.
 See 'docker run --help'.
 ```
