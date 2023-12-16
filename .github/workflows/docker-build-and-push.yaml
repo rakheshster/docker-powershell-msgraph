@@ -55,5 +55,6 @@ jobs:
           build-args: |
             GRAPH_VERSION=${{ github.event.inputs.moduleversion }}
           push: ${{ github.ref == 'refs/heads/main' }}
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description="PowerShell + MS Graph container"
           tags: |
             ghcr.io/rakheshster/docker-powershell-msgraph:${{ github.event.inputs.moduleversion }}
