@@ -12,7 +12,7 @@ For the latest version:
 ```
 docker build --progress=plain --no-cache . --network host -t graph-latest
 
-docker run -it --network host \
+docker run -it --network host --rm \
     -v /path/to/Scripts:/root/Scripts:ro \
     -v /path/to/MoreScripts:/root/MoreScripts:ro \
     -v /HOME/.config/powershell:/root/.config/powershell:ro \
@@ -24,7 +24,7 @@ For a specific version (2.10.0 in this case, be sure to change it in THREE place
 ```
 docker build --progress=plain --no-cache . --network host --build-arg="GRAPH_VERSION=2.10.0" -t graph-2.10.0
 
-docker run -it --network host \
+docker run -it --network host --rm \
     -v /path/to/Scripts:/root/Scripts:ro \
     -v /path/to/MoreScripts:/root/MoreScripts:ro \
     -v /HOME/.config/powershell:/root/.config/powershell:ro \
@@ -39,7 +39,7 @@ If you just want to run the Docker image, assuming a version you want is already
 ```
 docker pull ghcr.io/rakheshster/docker-powershell-msgraph:1.21.0
 
-docker run -it --network host \
+docker run -it --network host --rm \
     -v /path/to/Scripts:/root/Scripts:ro \
     -v /path/to/MoreScripts:/root/MoreScripts:ro \
     -v /HOME/.config/powershell:/root/.config/powershell:ro \
@@ -62,7 +62,7 @@ Also see [my blog post](https://rakhesh.com/azure/docker-powershell-microsoft-gr
 I have since made a Bash function like this:
 ```
 function docker-graph() {
-    docker run -it --network host \
+    docker run -it --network host --rm \
         -v /path/to/Scripts:/root/Scripts:ro \
         -v /path/to/MoreScripts:/root/MoreScripts:ro \
         -v /HOME/.config/powershell:/root/.config/powershell:ro \
