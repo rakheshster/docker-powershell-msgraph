@@ -74,6 +74,8 @@ function docker-graph() {
 }
 ```
 
+The `--rm` switch tells Docker to remove the container when I exit.
+
 This way I can do `docker-graph 2.10.0` and it will download and put me in that. If the image doesn't exist it errors:
 ```
 $ docker-graph 2.9.0
