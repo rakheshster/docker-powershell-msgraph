@@ -2,7 +2,9 @@
 name: Docker Build & Push (if any updates)
 
 # Thank you https://github.com/madnuttah/unbound-docker/blob/main/.github/workflows/cd.yaml 
-# from where I got the automatic building stuff
+# from where I got the automatic building stuff.
+# And https://stackoverflow.com/a/77820236 for the multiple jobs idea.
+# And https://stackoverflow.com/a/77498543 for the Docker API
 
 # When it runs
 on:
@@ -19,15 +21,15 @@ permissions: write-all
 
 # And what jobs it has
 jobs:
-  # Just one job here ...
-  build-linux-box:
+  # This one checks if any updates are needed
+  update-check-job:
     runs-on: ubuntu-latest
-    env: 
-      CD_COMMIT_MESSAGE: Continuous Delivery Build Variables
-      CD_COMMIT_AUTHOR: Continuous Delivery
-      # Coz of https://github.com/orgs/community/discussions/45969 & https://github.com/docker/build-push-action/issues/755
-      BUILDX_NO_DEFAULT_ATTESTATIONS: 1
-    # the steps of my job
+    # Outputs of this job
+    outputs:
+      # This comes from the step below
+      SHOULD_RUN: ${{ steps.EXIT_ACTION.outputs.SHOULD_RUN }}
+      SDK_VERSION: ${{ steps.GET_VERSION.outputs.SDK_VERSION }}
+    # The steps of this job
     steps:
       - name: Get versions
         id: GET_VERSIONS
@@ -36,18 +38,27 @@ jobs:
           echo DOCKER_VERSION="$(curl -s 'https://hub.docker.com/v2/repositories/rakheshster/powershell-msgraph/tags' -H 'Content-Type: application/json' | jq -r '.results[] | .name' | sort -Vr | head -n 1)" >> $GITHUB_OUTPUT
       
       - name: Exit if no update available
-        id: IS_UPDATE_AVAILABLE
+        id: EXIT_ACTION
         run: |
           if [[ "${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}" == "${{ steps.GET_VERSIONS.outputs.DOCKER_VERSION }}" ]]; then
             echo "No update needed"
-            exit 0
+            echo SHOULD_RUN=false >> $GITHUB_OUTPUT
           else
             echo "Needs updating to @{{ steps.GET_VERSIONS.outputs.SDK_VERSION }}"
+            echo SHOULD_RUN=true >> $GITHUB_OUTPUT
           fi
 
-      # From here on its a copy paste of the docker-build-and-push.yaml action
-      # But I change 'github.event.inputs.moduleversion' to 'steps.GET_VERSIONS.outputs.SDK_VERSION'
-
+  # This one actually builds.
+  # This is a copy paste of the docker-build-and-push.yaml action
+  # But I change 'github.event.inputs.moduleversion' to 'steps.GET_VERSIONS.outputs.SDK_VERSION'
+  build-linux-box:
+    runs-on: ubuntu-latest
+    needs: update-check-job
+    if: needs.update-check-job.outputs.SHOULD_RUN == 'true'
+    env:
+      # Coz of https://github.com/orgs/community/discussions/45969 & https://github.com/docker/build-push-action/issues/755
+      BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+    steps:
       # Checkout the code from GitHib
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -81,9 +92,9 @@ jobs:
           # Only amd64 is supported for now in the Ubuntu image https://learn.microsoft.com/en-gb/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.4#ubuntu
           # thanks for the syntax https://github.com/docker/build-push-action/issues/557
           build-args: |
-            GRAPH_VERSION=${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
+            GRAPH_VERSION=${{ needs.update-check-job.outputs.SHOULD_RUN }}
           push: ${{ github.ref == 'refs/heads/main' }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description='PowerShell + MS Graph container'
           tags: |
-            rakheshster/powershell-msgraph:${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
-            ghcr.io/rakheshster/powershell-msgraph:${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
+            rakheshster/powershell-msgraph:${{ needs.update-check-job.outputs.SHOULD_RUN }}
+            ghcr.io/rakheshster/powershell-msgraph:${{ needs.update-check-job.outputs.SHOULD_RUN }}
