@@ -1,0 +1,88 @@
+# This is the name of the workflow
+name: Docker Build & Push (if any updates)
+
+# Thank you https://github.com/madnuttah/unbound-docker/blob/main/.github/workflows/cd.yaml 
+# from where I got the automatic building stuff
+
+# When it runs
+on:
+  schedule:
+    - cron: '0 */4 * * 1-5'  # https://crontab.guru/#0_*/4_*_*_1-5
+
+defaults:
+  run:
+    shell: bash
+
+# See https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+permissions: write-all
+
+# And what jobs it has
+jobs:
+  # Just one job here ...
+  build-linux-box:
+    runs-on: ubuntu-latest
+    env: 
+      CD_COMMIT_MESSAGE: Continuous Delivery Build Variables
+      CD_COMMIT_AUTHOR: Continuous Delivery
+      # Coz of https://github.com/orgs/community/discussions/45969 & https://github.com/docker/build-push-action/issues/755
+      BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+    # the steps of my job
+    steps:
+      - name: Get versions
+        id: GET_VERSIONS
+        run: |
+          echo SDK_VERSION="$(curl -s https://api.github.com/repos/microsoftgraph/msgraph-sdk-powershell/releases | jq '.[0] | .name' -r | grep -Eo '([0-9]+)(\.?[0-9]+)*' | head -1)" >> $GITHUB_OUTPUT
+          echo DOCKER_VERSION="$(curl -s 'https://hub.docker.com/v2/repositories/rakheshster/powershell-msgraph/tags' -H 'Content-Type: application/json' | jq -r '.results[] | .name' | sort -Vr | head -n 1)" >> $GITHUB_OUTPUT
+      
+      - name: Exit if no update available
+        id: IS_UPDATE_AVAILABLE
+        run: |
+          if [[ "${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}" == "${{ steps.GET_VERSIONS.outputs.DOCKER_VERSION }}" ]]; then
+            echo "No update needed"
+            exit 1
+          else
+            echo "Needs updating to @{{ steps.GET_VERSIONS.outputs.SDK_VERSION }}"
+          fi
+
+      # From here on its a copy paste of the docker-build-and-push.yaml action
+      # But I change 'github.event.inputs.moduleversion' to 'steps.GET_VERSIONS.outputs.SDK_VERSION'
+
+      # Checkout the code from GitHib
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Setup QEMU for building other platforms
+      # # https://github.com/docker/setup-qemu-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile
+          platforms: "linux/amd64,linux/arm64"
+          # Only amd64 is supported for now in the Ubuntu image https://learn.microsoft.com/en-gb/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.4#ubuntu
+          # thanks for the syntax https://github.com/docker/build-push-action/issues/557
+          build-args: |
+            GRAPH_VERSION=${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
+          push: ${{ github.ref == 'refs/heads/main' }}
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description='PowerShell + MS Graph container'
+          tags: |
+            rakheshster/powershell-msgraph:${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
+            ghcr.io/rakheshster/powershell-msgraph:${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
