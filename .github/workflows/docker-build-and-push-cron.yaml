@@ -6,6 +6,7 @@ name: Docker Build & Push (if any updates)
 
 # When it runs
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 */4 * * 1-5'  # https://crontab.guru/#0_*/4_*_*_1-5
 
