@@ -28,7 +28,7 @@ jobs:
     outputs:
       # This comes from the step below
       SHOULD_RUN: ${{ steps.EXIT_ACTION.outputs.SHOULD_RUN }}
-      SDK_VERSION: ${{ steps.GET_VERSION.outputs.SDK_VERSION }}
+      SDK_VERSION: ${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}
     # The steps of this job
     steps:
       - name: Get versions
@@ -50,7 +50,7 @@ jobs:
 
   # This one actually builds.
   # This is a copy paste of the docker-build-and-push.yaml action
-  # But I change 'github.event.inputs.moduleversion' to 'steps.GET_VERSIONS.outputs.SDK_VERSION'
+  # But I change 'github.event.inputs.moduleversion' to 'needs.update-check-job.outputs.SDK_VERSION'
   build-linux-box:
     runs-on: ubuntu-latest
     needs: update-check-job
@@ -92,9 +92,9 @@ jobs:
           # Only amd64 is supported for now in the Ubuntu image https://learn.microsoft.com/en-gb/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.4#ubuntu
           # thanks for the syntax https://github.com/docker/build-push-action/issues/557
           build-args: |
-            GRAPH_VERSION=${{ needs.update-check-job.outputs.SHOULD_RUN }}
+            GRAPH_VERSION=${{ needs.update-check-job.outputs.SDK_VERSION }}
           push: ${{ github.ref == 'refs/heads/main' }}
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description='PowerShell + MS Graph container'
           tags: |
-            rakheshster/powershell-msgraph:${{ needs.update-check-job.outputs.SHOULD_RUN }}
-            ghcr.io/rakheshster/powershell-msgraph:${{ needs.update-check-job.outputs.SHOULD_RUN }}
+            rakheshster/powershell-msgraph:${{ needs.update-check-job.outputs.SDK_VERSION }}
+            ghcr.io/rakheshster/powershell-msgraph:${{ needs.update-check-job.outputs.SDK_VERSION }}
