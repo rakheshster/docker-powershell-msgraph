@@ -34,7 +34,7 @@ jobs:
       - name: Get versions
         id: GET_VERSIONS
         run: |
-          echo SDK_VERSION="$(curl -s https://api.github.com/repos/microsoftgraph/msgraph-sdk-powershell/releases | jq '.[] | .name' | sort -Vr | head -n 1 | tr -d "\"")" >> $GITHUB_OUTPUT
+          echo SDK_VERSION="$(curl -s https://api.github.com/repos/microsoftgraph/msgraph-sdk-powershell/releases | jq '.[] | .name' | sort -Vr | head -n 1 | tr -d "\"" | sed -e "s/[[:space:]].*$//")" >> $GITHUB_OUTPUT
           echo DOCKERHUB_VERSION="$(curl -s 'https://hub.docker.com/v2/repositories/rakheshster/powershell-msgraph/tags' -H 'Content-Type: application/json' | jq -r '.results[] | .name' | sort -Vr | head -n 1)" >> $GITHUB_OUTPUT
       
       - name: Exit if no update available
