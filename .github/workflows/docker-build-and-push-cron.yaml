@@ -40,12 +40,17 @@ jobs:
       - name: Exit if no update available
         id: EXIT_ACTION
         run: |
-          if [[ "${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}" == "${{ steps.GET_VERSIONS.outputs.DOCKERHUB_VERSION }}" ]]; then
-            echo "No update needed"
-            echo SHOULD_RUN=false >> $GITHUB_OUTPUT
+          if [[ "${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}" != "" && "${{ steps.GET_VERSIONS.outputs.DOCKERHUB_VERSION }}" != "" ]]; then
+            if [[ "${{ steps.GET_VERSIONS.outputs.SDK_VERSION }}" == "${{ steps.GET_VERSIONS.outputs.DOCKERHUB_VERSION }}" ]]; then
+              echo "No update needed"
+              echo SHOULD_RUN=false >> $GITHUB_OUTPUT
+            else
+              echo "Needs updating to @{{ steps.GET_VERSIONS.outputs.SDK_VERSION }}"
+              echo SHOULD_RUN=true >> $GITHUB_OUTPUT
+            fi
           else
-            echo "Needs updating to @{{ steps.GET_VERSIONS.outputs.SDK_VERSION }}"
-            echo SHOULD_RUN=true >> $GITHUB_OUTPUT
+            echo echo "SDK_VERSION (@{{ steps.GET_VERSIONS.outputs.SDK_VERSION }}) or DOCKERHUB_VERSION (@{{ steps.GET_VERSIONS.outputs.DOCKERHUB_VERSION }}) came up empty"
+            echo SHOULD_RUN=false >> $GITHUB_OUTPUT
           fi
 
   # This one actually builds.
